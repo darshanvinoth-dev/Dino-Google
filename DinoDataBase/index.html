@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dino Database — Families • Subfamilies • Genera • Species</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #121821;
+      --muted: #9fb0c3;
+      --accent: #7ad1ff;
+      --text: #e7eef7;
+      --chip: #1b2430;
+      --chip-border: #263244;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(135deg, #0a0f14, #0b1220 60%, #0d1626); color: var(--text); }
+    header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); background: rgba(11,15,20,.7); border-bottom: 1px solid #1c2531; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
+    h1 { font-size: 28px; margin: 0; letter-spacing: .2px; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    .controls { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+    input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #253244; background: #0f1520; color: var(--text); outline: none; }
+    input::placeholder { color: #7f8ea0; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #253244; background: #0f1520; color: var(--text); cursor: pointer; }
+    button:hover { background: #141c29; }
+
+    .meta { display: flex; gap: 12px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .pill { display: inline-flex; gap: 8px; align-items: center; border: 1px solid var(--chip-border); background: var(--chip); padding: 6px 10px; border-radius: 999px; }
+
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; margin: 16px 0 40px; }
+    .card { grid-column: span 12; background: var(--card); border: 1px solid #1d2634; border-radius: 16px; padding: 14px; transition: transform .15s ease; }
+    .card:hover { transform: translateY(-2px); }
+
+    @media (min-width: 640px) { .card { grid-column: span 6; } }
+    @media (min-width: 1024px) { .card { grid-column: span 4; } }
+
+    .card h3 { margin: 6px 0 8px; font-size: 18px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font-size: 12px; color: var(--muted); background: var(--chip); border: 1px solid var(--chip-border); padding: 4px 8px; border-radius: 999px; }
+    .badge { font-size: 11px; letter-spacing: .3px; color: #0b1724; background: var(--accent); padding: 4px 8px; border-radius: 999px; font-weight: 700; }
+    .facts { margin-top: 8px; font-size: 13px; color: #c8d6e6; }
+    .toggle { margin-top: 10px; font-size: 13px; color: var(--accent); cursor: pointer; user-select: none; }
+    .details { margin-top: 8px; border-top: 1px dashed #2a3648; padding-top: 10px; display: none; }
+
+    .kv { display: grid; grid-template-columns: 1fr 2fr; gap: 6px 10px; font-size: 13px; }
+    .kv div { padding: 2px 0; }
+    .kv .k { color: var(--muted); }
+
+    footer { color: var(--muted); font-size: 12px; border-top: 1px solid #1c2531; }
+    .muted { color: var(--muted); }
+
+    .thumb { width: 100%; max-height: 170px; object-fit: cover; border-radius: 12px; border: 1px solid #1d2634; background: #0e141f; display:block; }
+    .thumb-wrap { margin-bottom: 10px; }
+    .thumb[hidden] { display:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>🦕 Dino Database</h1>
+      <div class="sub">Browse by <strong>Family</strong>, </strong>Subfamily</strong>, </strong>Genus,</strong>or </strong>search <strong>all <strong>species</div>
+        <p class="muted">
+ Devloper's note: Hey! it's me My name is Darshan Vinoth I made this at 10 i still am<br>
+  <br>
+  Reuse or reproduction without permission is prohibited.
+</p>
+      <div class="controls" role="group" aria-label="Filters">
+        <input id="q" type="search" placeholder="Search species, genus, formation, locality, specimen…" />
+        <select id="family"><option value="">Family (all)</option></select>
+        <select id="subfamily"><option value="">Subfamily (all)</option></select>
+        <select id="genus"><option value="">Genus (all)</option></select>
+        <select id="sort">
+          <option value="name">Sort: Name (A→Z)</option>
+          <option value="age_desc">Age (youngest → oldest)</option>
+          <option value="age_asc">Age (oldest → youngest)</option>
+          <option value="length_desc">Length (long → short)</option>
+          <option value="mass_desc">Mass (heavy → light)</option>
+        </select>
+      </div>
+      <div class="meta">
+        <span class="pill">Showing <span id="count">0</span> species</span>
+        <span class="pill">Families loaded: <span id="familyCount">0</span></span>
+        <button id="reset">Reset filters</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p class="muted">© 2025 Darshan Vinoth. All rights reserved.
+This project is shared publicly for demonstration only.
+Reuse or reproduction without permission is prohibited.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // === Wikipedia image loader ===
+    const WIKI_SUMMARY = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
+    const titleMap = {
+      'Giraffatitan brancai': 'Giraffatitan',
+      'Patagotitan mayorum': 'Patagotitan',
+      'Diplodocus carnegii': 'Diplodocus',
+      'Apatosaurus louisae': 'Apatosaurus',
+      'Corythosaurus casuarius': 'Corythosaurus',
+      'Lambeosaurus lambei': 'Lambeosaurus',
+      'Allosaurus fragilis': 'Allosaurus'
+    };
+
+    async function loadImageFor(d){
+      const title = (d.wikipediaTitle || titleMap[d.name] || d.name).replace(/\s+/g,'_');
+      try {
+        const res = await fetch(WIKI_SUMMARY + encodeURIComponent(title) + '?redirect=true');
+        if(!res.ok) return;
+        const j = await res.json();
+        const src = (j.originalimage && j.originalimage.source) || (j.thumbnail && j.thumbnail.source) || null;
+        if(src){
+          const img = document.getElementById('img-'+d.id);
+          if(img){ img.src = src; img.hidden = false; img.alt = (j.titles && j.titles.display) ? j.titles.display : d.name; }
+        }
+      } catch(_e){ }
+    }
+
+    function sp(o){
+      return {
+        id: o.name.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+        name: o.name,
+        genus: o.genus,
+        subfamily: o.subfamily || "—",
+        family: o.family,
+        timeRange: o.time,
+        formation: o.formation,
+        locality: o.locality,
+        length_m: o.length,
+        mass_kg: o.mass,
+        diet: o.diet,
+        typeSpecimen: o.type,
+        specimens: (o.specimens||[]).map(s=>({name:s.name, code:s.code, notes:s.notes||"", image: s.image||null})),
+        facts: o.facts||[]
+      };
+    }
+
+    const DB = [
+  sp({ name: "Velociraptor mongoliensis", genus: "Velociraptor", subfamily: "Velociraptorinae", family: "Dromaeosauridae", time: "75–71 Ma (Late Cretaceous)", formation: "Djadokhta Fm.", locality: "Mongolia (Ömnögovi)", length: 2.0, mass: 15, diet: "Carnivore",
+    type: "AMNH 6515", specimens: [ { name:"Fighting Dinosaurs pair (Velociraptor)", code:"IGM 100/25", notes:"Locked in combat with Protoceratops" } ],
+    facts: ["Sickle-shaped second toe claw used for grasping."] }),
+  sp({ name: "Tyrannosaurus rex", genus:"Tyrannosaurus", subfamily:"Tyrannosaurinae", family:"Tyrannosauridae", time:"68–66 Ma (Late Cretaceous)", formation:"Hell Creek / Lance Fms.", locality:"Montana–S. Dakota, USA", length: 12.3, mass: 8000, diet:"Apex carnivore",
+    type:"CM 9380", specimens:[
+      { name:"Sue", code:"FMNH PR 2081", notes:"Most complete T. rex (~90%)" },
+      { name:"Scotty", code:"RSM P2523.8", notes:"One of the largest T. rex; per request: name only, no image" }
+    ], facts:["Massive bite force; robust skull and banana-shaped teeth."] }),
+  sp({ name: "Triceratops horridus", genus:"Triceratops", subfamily:"Chasmosaurinae", family:"Ceratopsidae", time:"68–66 Ma", formation:"Hell Creek", locality:"Montana–Wyoming, USA", length: 8.0, mass: 6000, diet:"Herbivore",
+    type:"USNM 2412", specimens:[{ name:"Big John (specimen)", code:"MPC-D 102/113", notes:"Record frill size" }], facts:["Large brow horns and solid frill; powerful beak."] }),
+  // === Spinosauridae (batch 1) ===
+  sp({ name: "Spinosaurus aegyptiacus", genus:"Spinosaurus", subfamily:"Spinosaurinae", family:"Spinosauridae", time:"99–93 Ma", formation:"Kem Kem beds", locality:"Morocco", length: 14.0, mass: 7000, diet:"Piscivore/opportunist",
+    type:"Destroyed (WWII); neotype FSAC-KK 11888", specimens:[{ name:"Neotype", code:"FSAC-KK 11888", notes:"Neotype material from Morocco" }], facts:["Elongate jaws; probable semi-aquatic lifestyle."] }),
+  sp({ name: "Baryonyx walkeri", genus:"Baryonyx", subfamily:"Baryonychinae", family:"Spinosauridae", time:"130–125 Ma", formation:"Weald Clay", locality:"Surrey, UK", length: 8.5, mass: 1700, diet:"Piscivore",
+    type:"NHMUK R9951", specimens:[{ name:"Holotype skeleton", code:"NHMUK R9951", notes:"Famous claw (31 cm)" }], facts:["Fish scales in the stomach region indicate diet."] }),
+  sp({ name: "Suchomimus tenerensis", genus:"Suchomimus", subfamily:"Baryonychinae", family:"Spinosauridae", time:"125 Ma", formation:"Elrhaz Fm.", locality:"Niger", length: 11.0, mass: 3500, diet:"Piscivore", type:"MNN GDF500", specimens:[{name:"Holotype", code:"MNN GDF500", notes:"Elongate snout; tall neural spines"}], facts:["Fish-eating anatomy with conical teeth."] }),
+
+  // === Hadrosauridae (batch 1) ===
+  sp({ name: "Edmontosaurus annectens", genus:"Edmontosaurus", subfamily:"Saurolophinae", family:"Hadrosauridae", time:"68–66 Ma", formation:"Hell Creek", locality:"N. America", length: 12.0, mass: 4000, diet:"Herbivore",
+    type:"AMNH 5046", specimens:[{ name:"Dakota (mummy)", code:"NDGS 2000", notes:"Soft tissue impressions" }], facts:["Tooth batteries with hundreds of teeth for grinding."] }),
+  sp({ name: "Parasaurolophus walkeri", genus:"Parasaurolophus", subfamily:"Lambeosaurinae", family:"Hadrosauridae", time:"76–73 Ma", formation:"Dinosaur Park / Kirtland", locality:"Alberta/NM", length: 10.0, mass: 3000, diet:"Herbivore",
+    type:"ROM 768", specimens:[{ name:"Type skull", code:"ROM 768", notes:"Long tubular cranial crest" }], facts:["Crest likely used for display and resonant calls."] }),
+
+  // === Sauropoda (batch 1) ===
+  sp({ name: "Diplodocus carnegii", genus:"Diplodocus", subfamily:"Diplodocinae", family:"Diplodocidae (Sauropoda)", time:"154–152 Ma (Late Jurassic)", formation:"Morrison Fm.", locality:"Wyoming, USA", length: 24.0, mass: 12000, diet:"Herbivore",
+    type:"CM 84", specimens:[{ name:"CM 84", code:"CM 84", notes:"Mounted at Carnegie Museum" }], facts:["Whip-like tail; peg-like teeth for branch stripping."] })
+];
+
+// Build filter dictionaries
+const families = [...new Set(DB.map(x=>x.family))].sort();
+const subfamilies = [...new Set(DB.map(x=>x.subfamily))].sort();
+const genera = [...new Set(DB.map(x=>x.genus))].sort();
+
+// DOM references
+const grid = document.getElementById('grid');
+const q = document.getElementById('q');
+const familySel = document.getElementById('family');
+const subfamilySel = document.getElementById('subfamily');
+const genusSel = document.getElementById('genus');
+const sortSel = document.getElementById('sort');
+const resetBtn = document.getElementById('reset');
+const countEl = document.getElementById('count');
+const familyCountEl = document.getElementById('familyCount');
+
+// Populate selectors
+families.forEach(f=> familySel.append(new Option(f, f)));
+subfamilies.forEach(s=> subfamilySel.append(new Option(s, s)));
+const gens = [...new Set(DB.map(x=>x.genus))].sort();
+gens.forEach(g=> genusSel.append(new Option(g, g)));
+familyCountEl.textContent = families.length;
+
+function matches(entry){
+  const term = q.value.trim().toLowerCase();
+  const fam = familySel.value; const sub = subfamilySel.value; const gen = genusSel.value;
+  if(fam && entry.family !== fam) return false;
+  if(sub && entry.subfamily !== sub) return false;
+  if(gen && entry.genus !== gen) return false;
+  if(!term) return true;
+  const hay = [entry.name, entry.genus, entry.family, entry.subfamily, entry.formation, entry.locality, entry.typeSpecimen, entry.diet, ...(entry.specimens||[]).map(s=>`${s.name} ${s.code} ${s.notes}`), ...(entry.facts||[])].join(' ').toLowerCase();
+  return hay.includes(term);
+}
+
+function cmp(a,b){
+  const mode = sortSel.value;
+  if(mode==='name') return a.name.localeCompare(b.name);
+  if(mode==='age_desc') return (a.timeRange||'').localeCompare(b.timeRange||'');
+  if(mode==='age_asc') return (b.timeRange||'').localeCompare(a.timeRange||'');
+  if(mode==='length_desc') return (b.length_m||0) - (a.length_m||0);
+  if(mode==='mass_desc') return (b.mass_kg||0) - (a.mass_kg||0);
+  return 0;
+}
+
+function render(){
+  grid.innerHTML='';
+  const rows = DB.filter(matches).sort(cmp);
+  countEl.textContent = rows.length;
+  for(const d of rows){
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="thumb-wrap"><img class="thumb" alt="${escapeHtml(d.name)}" id="img-${d.id}" hidden referrerpolicy="no-referrer" /></div>
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h3>${d.name}</h3>
+        <span class="badge">${d.family}</span>
+      </div>
+      <div class="row" style="margin:6px 0 8px;">
+        <span class="chip">Genus: <strong>&nbsp;${d.genus}</strong></span>
+        <span class="chip">Subfamily: <strong>&nbsp;${d.subfamily}</strong></span>
+        <span class="chip">Diet: <strong>&nbsp;${d.diet}</strong></span>
+        <span class="chip">Length: <strong>&nbsp;${fmtLen(d.length_m)}</strong></span>
+        <span class="chip">Mass: <strong>&nbsp;${fmtMass(d.mass_kg)}</strong></span>
+      </div>
+      <div class="facts">${escapeHtml(d.timeRange)} — ${escapeHtml(d.formation)} — ${escapeHtml(d.locality)}</div>
+      ${d.facts?.length? `<div class="facts">Facts: ${d.facts.map(f=>`• ${escapeHtml(f)}`).join(' ')}</div>`: ''}
+      <div class="toggle" data-id="${d.id}">Show details ▼</div>
+      <div class="details" id="det-${d.id}">
+        <div class="kv">
+          <div class="k">Type specimen</div><div>${escapeHtml(d.typeSpecimen||'—')}</div>
+          <div class="k">Specimens</div><div>${renderSpecimensWithCountry(d.specimens, d)}</div>
+        </div>
+      </div>
+    `;
+    grid.append(card);
+    loadImageFor(d);
+  }
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => {
+      const id = t.getAttribute('data-id');
+      const el = document.getElementById('det-'+id);
+      const open = el.style.display === 'block';
+      el.style.display = open ? 'none' : 'block';
+      t.textContent = open ? 'Show details ▼' : 'Hide details ▲';
+    });
+  });
+}
+
+function renderSpecimensWithCountry(list, entry){
+  if(!list || !list.length) return '—';
+  return `<ul style="margin:0; padding-left:18px;">` + list.map(s => {
+    const isScotty = /\bScotty\b/i.test(s.name);
+    const imgHtml = (!isScotty && s.image) ? `<br><em>(image available)</em>` : '';
+    const country = s.country || inferCountry(entry && entry.locality || '');
+    const countryHtml = country ? ` — <em>Country: ${escapeHtml(country)}</em>` : '';
+    return `<li><strong>${escapeHtml(s.name)}</strong> — <code>${escapeHtml(s.code||'')}</code>${s.notes?`: ${escapeHtml(s.notes)}`:''}${countryHtml} ${imgHtml}</li>`;
+  }).join('') + `</ul>`;
+}
+
+function inferCountry(loc){
+  const s = String(loc);
+  const map = [
+    [/USA|United States|Montana|Wyoming|Colorado|Utah|South Dakota/i, 'USA'],
+    [/Canada|Alberta/i, 'Canada'],
+    [/Mongolia/i, 'Mongolia'],
+    [/China|Liaoning/i, 'China'],
+    [/Morocco/i, 'Morocco'],
+    [/Algeria/i, 'Algeria'],
+    [/Brazil/i, 'Brazil'],
+    [/Niger/i, 'Niger'],
+    [/United Kingdom|UK|Surrey/i, 'United Kingdom'],
+    [/Tanzania|Tendaguru/i, 'Tanzania'],
+    [/Argentina|Patagonia/i, 'Argentina'],
+    [/Egypt|Bahariya/i, 'Egypt']
+  ];
+  for (const [re, c] of map){ if(re.test(s)) return c; }
+  if(s.includes(',')) return s.split(',').pop().trim();
+  return '';
+}
+
+function fmtLen(m){ return m ? (m.toFixed(1) + ' m') : '—'; }
+function fmtMass(kg){ return kg ? (Intl.NumberFormat('en').format(kg) + ' kg') : '—'; }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+
+[q, familySel, subfamilySel, genusSel, sortSel].forEach(el => el.addEventListener('input', render));
+resetBtn.addEventListener('click', () => { q.value=''; familySel.value=''; subfamilySel.value=''; genusSel.value=''; sortSel.value='name'; render(); });
+
+render();
+
+// Try to load external dataset (prebuilt JSON) and merge without duplicates
+(async function(){
+  async function loadFile(fname){
+    try{
+      const res = await fetch(fname, {cache:'no-store'});
+      if(!res.ok) return false;
+      const ext = await res.json();
+      const have = new Set(DB.map(x=>x.name));
+      let added = 0;
+      for(const o of ext){
+        if(!have.has(o.name)){
+          DB.push(sp(o));
+          have.add(o.name);
+          added++;
+        }
+      }
+      if(added){
+        // Rebuild selectors and re-render
+        familySel.innerHTML = '<option value="">Family (all)</option>';
+        subfamilySel.innerHTML = '<option value="">Subfamily (all)</option>';
+        genusSel.innerHTML = '<option value="">Genus (all)</option>';
+        const fams=[...new Set(DB.map(x=>x.family))].sort();
+        const subs=[...new Set(DB.map(x=>x.subfamily))].sort();
+        const gens=[...new Set(DB.map(x=>x.genus))].sort();
+        fams.forEach(f=> familySel.append(new Option(f,f)));
+        subs.forEach(s=> subfamilySel.append(new Option(s,s)));
+        gens.forEach(g=> genusSel.append(new Option(g,g)));
+        familyCountEl.textContent=fams.length;
+        render();
+      }
+      return added>0;
+    }catch(_e){ return false; }
+  }
+  // Try multiple filenames so you don't have to rename your file
+  const candidates = ['dino_data.json','tyrannosauridae.json'];
+  for(const f of candidates){ await loadFile(f); }
+})();
+
+</script>
+</body>
+</html>

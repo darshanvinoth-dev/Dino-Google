@@ -1,0 +1,275 @@
+[
+  {
+    "name": "Tyrannosaurus rex",
+    "genus": "Tyrannosaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "68–66 Ma (Late Cretaceous)",
+    "formation": "Hell Creek / Lance",
+    "locality": "USA (MT/SD/WY)",
+    "length": 12.3,
+    "mass": 8000,
+    "diet": "Apex carnivore",
+    "type": "CM 9380",
+    "specimens": [
+      { "name": "Sue", "code": "FMNH PR 2081", "notes": "~90% complete adult" },
+      { "name": "Scotty", "code": "RSM P2523.8", "notes": "Very large individual — name only, no image" }
+    ],
+    "facts": ["Massive bite force; robust skull; banana-shaped teeth."]
+  },
+  {
+    "name": "Tarbosaurus bataar",
+    "genus": "Tarbosaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "70–66 Ma",
+    "formation": "Nemegt Fm.",
+    "locality": "Mongolia",
+    "length": 10.0,
+    "mass": 4500,
+    "diet": "Apex carnivore",
+    "type": "PIN 551-1",
+    "specimens": [
+      { "name": "Type skull", "code": "PIN 551-1", "notes": "" }
+    ],
+    "facts": ["Asian counterpart of T. rex; reduced forelimbs."]
+  },
+  {
+    "name": "Daspletosaurus torosus",
+    "genus": "Daspletosaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "77–75 Ma",
+    "formation": "Oldman Fm.",
+    "locality": "Canada (Alberta)",
+    "length": 9.0,
+    "mass": 2500,
+    "diet": "Carnivore",
+    "type": "CMN 8506",
+    "specimens": [
+      { "name": "Holotype", "code": "CMN 8506", "notes": "" }
+    ],
+    "facts": ["Close relative and precursor to T. rex."]
+  },
+  {
+    "name": "Daspletosaurus horneri",
+    "genus": "Daspletosaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "75–74 Ma",
+    "formation": "Two Medicine Fm.",
+    "locality": "USA (Montana)",
+    "length": 9.0,
+    "mass": 2600,
+    "diet": "Carnivore",
+    "type": "MOR 590",
+    "specimens": [
+      { "name": "Holotype", "code": "MOR 590", "notes": "Described 2017" }
+    ],
+    "facts": ["Facial sensory adaptations inferred from bone texture."]
+  },
+  {
+    "name": "Daspletosaurus wilsoni",
+    "genus": "Daspletosaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "76.5–76 Ma",
+    "formation": "Two Medicine Fm.",
+    "locality": "USA (Montana)",
+    "length": 9.0,
+    "mass": 2600,
+    "diet": "Carnivore",
+    "type": "MOR 553S-7-27-91-26",
+    "specimens": [
+      { "name": "Holotype", "code": "MOR 553S-7-27-91-26", "notes": "Named 2022" }
+    ],
+    "facts": ["Intermediate between D. torosus and D. horneri (proposed)."]
+  },
+  {
+    "name": "Lythronax argestes",
+    "genus": "Lythronax",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "80–79 Ma",
+    "formation": "Wahweap Fm.",
+    "locality": "USA (Utah)",
+    "length": 7.5,
+    "mass": 2500,
+    "diet": "Carnivore",
+    "type": "UMNH VP 20200",
+    "specimens": [
+      { "name": "Holotype", "code": "UMNH VP 20200", "notes": "" }
+    ],
+    "facts": ["Earliest known tyrannosaurine with wide skull."]
+  },
+  {
+    "name": "Teratophoneus curriei",
+    "genus": "Teratophoneus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "77–76 Ma",
+    "formation": "Kaiparowits Fm.",
+    "locality": "USA (Utah)",
+    "length": 7.0,
+    "mass": 1500,
+    "diet": "Carnivore",
+    "type": "UMNH VP 16690",
+    "specimens": [
+      { "name": "Holotype", "code": "UMNH VP 16690", "notes": "" }
+    ],
+    "facts": ["Short-skulled tyrannosaurine from Laramidia's south."]
+  },
+  {
+    "name": "Nanuqsaurus hoglundi",
+    "genus": "Nanuqsaurus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "70–68 Ma",
+    "formation": "Prince Creek Fm.",
+    "locality": "USA (Alaska)",
+    "length": 6.0,
+    "mass": 700,
+    "diet": "Carnivore",
+    "type": "DMNH 21461",
+    "specimens": [
+      { "name": "Holotype", "code": "DMNH 21461", "notes": "Arctic tyrannosaur" }
+    ],
+    "facts": ["Adapted to high-latitude seasonal environments."]
+  },
+  {
+    "name": "Zhuchengtyrannus magnus",
+    "genus": "Zhuchengtyrannus",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "73–70 Ma",
+    "formation": "Hongtuya Fm.",
+    "locality": "China (Shandong)",
+    "length": 10.0,
+    "mass": 3000,
+    "diet": "Carnivore",
+    "type": "ZCDM V0030",
+    "specimens": [
+      { "name": "Holotype", "code": "ZCDM V0030", "notes": "" }
+    ],
+    "facts": ["Large Asian tyrannosaur comparable to Tarbosaurus."]
+  },
+  {
+    "name": "Thanatotheristes degrootorum",
+    "genus": "Thanatotheristes",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "80.1–79.5 Ma",
+    "formation": "Foremost Fm.",
+    "locality": "Canada (Alberta)",
+    "length": 8.0,
+    "mass": 2000,
+    "diet": "Carnivore",
+    "type": "TMP 2010.5.7",
+    "specimens": [
+      { "name": "Holotype", "code": "TMP 2010.5.7", "notes": "Named 2020" }
+    ],
+    "facts": ["Earliest tyrannosaurid known from Canada."]
+  },
+  {
+    "name": "Bistahieversor sealeyi",
+    "genus": "Bistahieversor",
+    "subfamily": "Tyrannosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "74–72 Ma",
+    "formation": "Kirtland Fm.",
+    "locality": "USA (New Mexico)",
+    "length": 9.0,
+    "mass": 2500,
+    "diet": "Carnivore",
+    "type": "NMMNH P-25049",
+    "specimens": [
+      { "name": "Holotype", "code": "NMMNH P-25049", "notes": "" }
+    ],
+    "facts": ["Often placed as a basal tyrannosaurine."]
+  },
+  {
+    "name": "Albertosaurus sarcophagus",
+    "genus": "Albertosaurus",
+    "subfamily": "Albertosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "71–68 Ma",
+    "formation": "Horseshoe Canyon Fm.",
+    "locality": "Canada (Alberta)",
+    "length": 9.0,
+    "mass": 1800,
+    "diet": "Carnivore",
+    "type": "CMN 5600",
+    "specimens": [
+      { "name": "Dry Island bonebed", "code": "TMP series", "notes": "Multiple individuals" }
+    ],
+    "facts": ["More lightly built than tyrannosaurines."]
+  },
+  {
+    "name": "Gorgosaurus libratus",
+    "genus": "Gorgosaurus",
+    "subfamily": "Albertosaurinae",
+    "family": "Tyrannosauridae",
+    "time": "76–75 Ma",
+    "formation": "Dinosaur Park Fm.",
+    "locality": "Canada (Alberta)",
+    "length": 8.5,
+    "mass": 2000,
+    "diet": "Carnivore",
+    "type": "NMC 2120",
+    "specimens": [
+      { "name": "Type specimen", "code": "NMC 2120", "notes": "" }
+    ],
+    "facts": ["Slender skull; fast predator."]
+  },
+  {
+    "name": "Alioramus remotus",
+    "genus": "Alioramus",
+    "subfamily": "Alioramini",
+    "family": "Tyrannosauridae",
+    "time": "70–66 Ma",
+    "formation": "Nemegt Fm.",
+    "locality": "Mongolia",
+    "length": 6.0,
+    "mass": 500,
+    "diet": "Carnivore",
+    "type": "PIN 3141/1",
+    "specimens": [
+      { "name": "Holotype", "code": "PIN 3141/1", "notes": "" }
+    ],
+    "facts": ["Long, low snout with multiple small horns."]
+  },
+  {
+    "name": "Alioramus altai",
+    "genus": "Alioramus",
+    "subfamily": "Alioramini",
+    "family": "Tyrannosauridae",
+    "time": "70–66 Ma",
+    "formation": "Nemegt Fm.",
+    "locality": "Mongolia",
+    "length": 5.5,
+    "mass": 400,
+    "diet": "Carnivore",
+    "type": "IGM 100/1844",
+    "specimens": [
+      { "name": "Holotype", "code": "IGM 100/1844", "notes": "" }
+    ],
+    "facts": ["Known from a subadult skeleton with skull."]
+  },
+  {
+    "name": "Qianzhousaurus sinensis",
+    "genus": "Qianzhousaurus",
+    "subfamily": "Alioramini",
+    "family": "Tyrannosauridae",
+    "time": "72–66 Ma",
+    "formation": "Nanxiong Group",
+    "locality": "China (Jiangxi)",
+    "length": 7.5,
+    "mass": 800,
+    "diet": "Carnivore",
+    "type": "GMH V2115",
+    "specimens": [
+      { "name": "Holotype", "code": "GMH V2115", "notes": "“Pinocchio rex” long snout" }
+    ],
+    "facts": ["Closely related to Alioramus; longirostrine."]
+  }
+]
