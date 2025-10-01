@@ -59,35 +59,13 @@
 </head>
 <body>
   <header>
-    </header>
-<nav id="tabbar" style="display:flex; gap:8px; margin:10px 0; flex-wrap:wrap;"></nav>
-
-<section id="panel-deep-dive" data-tab="deep-dive"></section>
-<section id="panel-today" data-tab="todays-dino" hidden>
-  <div id="today-wrap" class="card" style="padding:12px;">
-    <h3 id="today-title">Today's Dino</h3>
-    <div id="today-countdown" style="opacity:.8; margin:.25rem 0 .75rem;"></div>
-    <div id="today-content">Loading…</div>
-  </div>
-</section>
-<section id="panel-games" data-tab="games" hidden>
-  <div class="card" style="padding:12px;">
-    <h3>Games</h3>
-    <p>Games are lazy-loaded. Open this tab again after first load.</p>
-    <div id="games-mount"></div>
-  </div>
-</section>
-<!-- ✅ Tabs + panels END -->
-
-<main class="wrap">
-
-    <main class="wrap">
+    <div class="wrap">
       <h1>🦕 Dino Database</h1>
       <div class="sub">Browse by <strong>Family</strong>, </strong>Subfamily</strong>, </strong>Genus,</strong>or </strong>search <strong>all <strong>species</div>
         <p class="muted">
  Devloper's note: Hey! it's me My name is Darshan Vinoth I made this at 10 i still am<br>
-  So please help and support me on this journey if you want to contact me go to my github page<br>
-  my username is darshanvinoth-dev and i have a kangroo DP.
+  <br>
+  Reuse or reproduction without permission is prohibited.
 </p>
       <div class="controls" role="group" aria-label="Filters">
         <input id="q" type="search" placeholder="Search species, genus, formation, locality, specimen…" />
@@ -124,6 +102,18 @@ Reuse or reproduction without permission is prohibited.
   </footer>
 
   <script>
+    // === Wikipedia image loader ===
+    const WIKI_SUMMARY = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
+    const titleMap = {
+      'Giraffatitan brancai': 'Giraffatitan',
+      'Patagotitan mayorum': 'Patagotitan',
+      'Diplodocus carnegii': 'Diplodocus',
+      'Apatosaurus louisae': 'Apatosaurus',
+      'Corythosaurus casuarius': 'Corythosaurus',
+      'Lambeosaurus lambei': 'Lambeosaurus',
+      'Allosaurus fragilis': 'Allosaurus'
+    };
+
     async function loadImageFor(d){
       const title = (d.wikipediaTitle || titleMap[d.name] || d.name).replace(/\s+/g,'_');
       try {
@@ -353,10 +343,7 @@ render();
   for(const f of candidates){ await loadFile(f); }
 })();
 
- </script>
+</script>
 </body>
 </html>
-
-
-
 
