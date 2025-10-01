@@ -124,18 +124,6 @@ Reuse or reproduction without permission is prohibited.
   </footer>
 
   <script>
-    // === Wikipedia image loader ===
-    const WIKI_SUMMARY = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
-    const titleMap = {
-      'Giraffatitan brancai': 'Giraffatitan',
-      'Patagotitan mayorum': 'Patagotitan',
-      'Diplodocus carnegii': 'Diplodocus',
-      'Apatosaurus louisae': 'Apatosaurus',
-      'Corythosaurus casuarius': 'Corythosaurus',
-      'Lambeosaurus lambei': 'Lambeosaurus',
-      'Allosaurus fragilis': 'Allosaurus'
-    };
-
     async function loadImageFor(d){
       const title = (d.wikipediaTitle || titleMap[d.name] || d.name).replace(/\s+/g,'_');
       try {
@@ -365,9 +353,10 @@ render();
   for(const f of candidates){ await loadFile(f); }
 })();
 
-</script>
+ </script>
 </body>
 </html>
+
 
 
 
