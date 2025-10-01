@@ -59,7 +59,29 @@
 </head>
 <body>
   <header>
-    <div class="wrap">
+    </header>
+<nav id="tabbar" style="display:flex; gap:8px; margin:10px 0; flex-wrap:wrap;"></nav>
+
+<section id="panel-deep-dive" data-tab="deep-dive"></section>
+<section id="panel-today" data-tab="todays-dino" hidden>
+  <div id="today-wrap" class="card" style="padding:12px;">
+    <h3 id="today-title">Today's Dino</h3>
+    <div id="today-countdown" style="opacity:.8; margin:.25rem 0 .75rem;"></div>
+    <div id="today-content">Loading…</div>
+  </div>
+</section>
+<section id="panel-games" data-tab="games" hidden>
+  <div class="card" style="padding:12px;">
+    <h3>Games</h3>
+    <p>Games are lazy-loaded. Open this tab again after first load.</p>
+    <div id="games-mount"></div>
+  </div>
+</section>
+<!-- ✅ Tabs + panels END -->
+
+<main class="wrap">
+
+    <main class="wrap">
       <h1>🦕 Dino Database</h1>
       <div class="sub">Browse by <strong>Family</strong>, </strong>Subfamily</strong>, </strong>Genus,</strong>or </strong>search <strong>all <strong>species</div>
         <p class="muted">
@@ -346,5 +368,6 @@ render();
 </script>
 </body>
 </html>
+
 
 
