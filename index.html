@@ -342,36 +342,10 @@ render();
   const candidates = ['dino_data.json','tyrannosauridae.json'];
   for(const f of candidates){ await loadFile(f); }
 })();
-
-<script>
-(async function(){
-  try {
-    const res = await fetch('app.config.json?v=' + Date.now()); // cache-bust
-    if(!res.ok) throw new Error("Config fetch failed: " + res.status);
-    const config = await res.json();
-    console.log("✅ Loaded config:", config);
-
-    // Example: use config to build tab bar
-    if(config.ui && config.ui.tabs){
-      const tabbar = document.getElementById("tabbar");
-      if(tabbar){
-        tabbar.innerHTML = "";
-        config.ui.tabs.forEach(t => {
-          const btn = document.createElement("button");
-          btn.textContent = t.label;
-          btn.dataset.tab = t.id;
-          btn.className = "dd-tab";
-          tabbar.appendChild(btn);
-        });
-      }
-    }
-  } catch(e){
-    console.error("❌ Config load error:", e);
-  }
-})();
 </script>
 </body>
 </html>
+
 
 
 
