@@ -42,7 +42,7 @@
       "image_policy": {
         "allow_cc_by_sa": true,
         "prefer_thumb_width_px": 480,
-        "block_specimen_names": ["Scotty"]  // name only, no image
+        "block_specimen_names": ["Scotty"]
       }
     }
   },
