@@ -346,44 +346,82 @@ render();
 })();
 </script>
 <script>
-(async function(){
-  const statusEl = document.getElementById('config-status');
+/* Minimal tabs wiring – safe to drop in */
+(function () {
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  function setStatus(msg){ 
-    if(statusEl) statusEl.textContent = msg; 
-    console.log(msg); 
-  }
+  // 1) Make sure panels exist (insert after <header>)
+  const header = document.querySelector('header');
+  if (!header) return;
 
-  let tabbar = document.getElementById('tabbar');
-
-  try {
-    const res = await fetch('app.config.json?v=' + Date.now());
-    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
-    const cfg = await res.json();
-    setStatus('✅ app.config.json loaded');
-
-    if (cfg.ui && Array.isArray(cfg.ui.tabs)) {
-      tabbar.innerHTML = '';
-      cfg.ui.tabs.forEach(t => {
-        const btn = document.createElement('button');
-        btn.textContent = t.label || t.id;
-        btn.dataset.tab = t.id;
-        btn.style.cssText = 'padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer;margin-right:6px;';
-        tabbar.appendChild(btn);
-      });
-      setStatus('✅ Tabs rendered from config (' + cfg.ui.tabs.length + ')');
-    } else {
-      setStatus('⚠️ Config loaded but no ui.tabs found');
+  function ensurePanel(id, labelHtml) {
+    let panel = document.getElementById(id);
+    if (!panel) {
+      panel = document.createElement('section');
+      panel.id = id;
+      panel.setAttribute('data-tab', id.replace('panel-',''));
+      panel.hidden = true;
+      panel.innerHTML = labelHtml || '';
+      header.insertAdjacentElement('afterend', panel);
     }
-  } catch (e) {
-    setStatus('❌ Could not load app.config.json — ' + e.message);
-    console.error(e);
+    return panel;
   }
+
+  const deep = ensurePanel('panel-deep-dive', '');
+  const today = ensurePanel('panel-today',
+    `<article class="card" style="padding:12px;">
+       <h3>Today's Dino</h3>
+       <div id="today-content" style="opacity:.85">Coming soon…</div>
+     </article>`);
+  const games = ensurePanel('panel-games',
+    `<article class="card" style="padding:12px;">
+       <h3>Games</h3>
+       <div id="games-mount" style="opacity:.85">Coming soon…</div>
+     </article>`);
+
+  // 2) Move your existing grid/main into the Deep Dive panel (do once)
+  const mainWrap = document.querySelector('main.wrap');
+  if (mainWrap && !deep.contains(mainWrap)) deep.appendChild(mainWrap);
+
+  // 3) Hook up the tab buttons inside #tabbar
+  const tabbar = document.getElementById('tabbar');
+  if (!tabbar) return;
+
+  // add a little active style if you don't have one already
+  const style = document.createElement('style');
+  style.textContent = `
+    #tabbar .active{background:#0f1520!important;border-color:#3a4d66!important}
+  `;
+  document.head.appendChild(style);
+
+  function showTab(tabId){
+    // panels
+    [['deep-dive', deep], ['todays-dino', today], ['games', games]].forEach(([id, el])=>{
+      el.hidden = (id !== tabId);
+    });
+    // buttons
+    $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+    // remember
+    localStorage.setItem('dd_last_tab', tabId);
+  }
+
+  // click handlers
+  $$('#tabbar button').forEach(btn=>{
+    // if buttons were created from config without class, ensure dataset exists
+    if (!btn.dataset.tab) btn.dataset.tab = (btn.textContent || '').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  });
+
+  // 4) Initial tab: last used or Deep Dive
+  const initial = localStorage.getItem('dd_last_tab') || 'deep-dive';
+  showTab(initial);
 })();
 </script>
 
 </body>
 </html>
+
 
 
 
