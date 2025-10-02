@@ -346,7 +346,7 @@ render();
 })();
 </script>
 <script>
-/* Tabs bootstrap — standalone and safe */
+/* Tabs bootstrap v2 — adds Home, keeps grid on Home, Deep Dive is search-only */
 (function () {
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -354,7 +354,7 @@ render();
   const header = $('header');
   if (!header) { console.warn('No <header> found'); return; }
 
-  // 1) Ensure a tabbar exists (after header)
+  /* 1) Ensure a tabbar exists (after header) */
   let tabbar = $('#tabbar');
   if (!tabbar) {
     tabbar = document.createElement('nav');
@@ -363,21 +363,23 @@ render();
     header.insertAdjacentElement('afterend', tabbar);
   }
 
-  // 2) If no buttons, create defaults
-  if (!tabbar.querySelector('button')) {
-    const makeBtn = (id, label) => {
-      const b = document.createElement('button');
-      b.dataset.tab = id;
-      b.textContent = label;
-      b.style.cssText = 'padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer';
-      tabbar.appendChild(b);
-    };
-    makeBtn('deep-dive', 'Deep Dive');
-    makeBtn('todays-dino', "Today's Dino");
-    makeBtn('games', 'Games');
-  }
+  /* 2) Rebuild buttons: Home, Deep Dive, Today’s Dino, Games */
+  tabbar.innerHTML = '';
+  const makeBtn = (id, label) => {
+    const b = document.createElement('button');
+    b.dataset.tab = id;
+    b.textContent = label;
+    b.style.cssText =
+      'padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer';
+    tabbar.appendChild(b);
+    return b;
+  };
+  makeBtn('home', 'Home');
+  makeBtn('deep-dive', 'Deep Dive');
+  makeBtn('todays-dino', "Today’s Dino");
+  makeBtn('games', 'Games');
 
-  // 3) Ensure panels exist (after tabbar)
+  /* 3) Ensure panels exist (immediately under tabbar) */
   function ensurePanel(id, html) {
     let p = document.getElementById('panel-' + id);
     if (!p) {
@@ -390,50 +392,105 @@ render();
     }
     return p;
   }
-  const deep  = ensurePanel('deep-dive', '');
-  const today = ensurePanel('todays-dino',
+
+  // HOME → will contain your existing <main class="wrap">…grid…</main>
+  const home = ensurePanel('home', '');
+
+  // DEEP DIVE → search-only UI (results list; no big grid)
+  const deep = ensurePanel(
+    'deep-dive',
     `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
-       <h3>Today's Dino</h3>
+       <h3 style="margin:.25rem 0 .5rem;">Deep Dive — Search by Genus</h3>
+       <input id="dd-search" type="search" placeholder="Type a genus (e.g., Tyrannosaurus)…"
+              style="width:100%;max-width:520px;padding:10px;border-radius:10px;border:1px solid #263244;background:#0f1520;color:#e7eef7;">
+       <div id="dd-results" style="margin-top:12px;"></div>
+     </article>`
+  );
+
+  // TODAY’S DINO
+  const today = ensurePanel(
+    'todays-dino',
+    `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
+       <h3 style="margin:.25rem 0 .5rem;">Today’s Dino</h3>
        <div id="today-content" style="opacity:.85">Coming soon…</div>
-     </article>`);
-  const games = ensurePanel('games',
+     </article>`
+  );
+
+  // GAMES
+  const games = ensurePanel(
+    'games',
     `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
-       <h3>Games</h3>
+       <h3 style="margin:.25rem 0 .5rem;">Games</h3>
        <div id="games-mount" style="opacity:.85">Coming soon…</div>
-     </article>`);
+     </article>`
+  );
 
-  // 4) Move your existing main/grid into Deep Dive once
+  /* 4) Move your existing main/grid into the HOME panel (so only Home shows dinosaurs) */
   const mainWrap = document.querySelector('main.wrap');
-  if (mainWrap && !deep.contains(mainWrap)) deep.appendChild(mainWrap);
+  if (mainWrap && !home.contains(mainWrap)) home.appendChild(mainWrap);
 
-  // 5) Small active style
-  const style = document.createElement('style');
-  style.textContent = `#tabbar .active{background:#0f1520!important;border-color:#3a4d66!important}`;
-  document.head.appendChild(style);
+  /* 5) Small active style */
+  const css = document.createElement('style');
+  css.textContent = `#tabbar .active{background:#0f1520!important;border-color:#3a4d66!important}`;
+  document.head.appendChild(css);
 
-  // 6) Show/hide logic
+  /* 6) Show/hide logic */
   function showTab(tabId){
-    [['deep-dive', deep], ['todays-dino', today], ['games', games]].forEach(([id, el])=>{
+    [['home', home], ['deep-dive', deep], ['todays-dino', today], ['games', games]].forEach(([id, el])=>{
       el.hidden = (id !== tabId);
     });
     $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
     localStorage.setItem('dd_last_tab', tabId);
   }
 
-  // 7) Wire buttons
+  // wire buttons
   $$('#tabbar button').forEach(btn=>{
-    if (!btn.dataset.tab) btn.dataset.tab = (btn.textContent||'').toLowerCase().replace(/[^a-z0-9]+/g,'-');
     btn.addEventListener('click', () => showTab(btn.dataset.tab));
   });
 
-  // 8) Initial tab
-  const initial = localStorage.getItem('dd_last_tab') || 'deep-dive';
+  /* 7) Initial tab: Home */
+  const initial = localStorage.getItem('dd_last_tab') || 'home';
   showTab(initial);
+
+  /* 8) Deep Dive — simple search by genus (lightweight) */
+  const input = $('#dd-search');
+  const results = $('#dd-results');
+  function renderResults(items){
+    if (!items.length){
+      results.innerHTML = `<div style="opacity:.75;">No matches.</div>`;
+      return;
+    }
+    results.innerHTML = items.slice(0,50).map(d => {
+      const where = [d.timeRange||d.time||'', d.formation||'', d.locality||'']
+        .filter(Boolean).join(' — ');
+      return `<div style="padding:8px 10px;border:1px solid #263244;border-radius:10px;margin:6px 0;background:#0f1520;">
+                <div style="font-weight:700;">${d.name}</div>
+                <div style="opacity:.85;font-size:13px;">Genus: <b>${d.genus||'—'}</b> • Family: <b>${d.family||'—'}</b></div>
+                <div style="opacity:.8;font-size:12px;margin-top:4px;">${where}</div>
+              </div>`;
+    }).join('');
+  }
+  function searchGenus(q){
+    const DB = (window.DB && Array.isArray(window.DB)) ? window.DB : [];
+    const term = String(q||'').trim().toLowerCase();
+    if (!term){ results.innerHTML = `<div style="opacity:.75;">Type a genus to search.</div>`; return; }
+    const out = DB.filter(d => (d.genus||'').toLowerCase().includes(term));
+    renderResults(out);
+  }
+  if (input){
+    results.innerHTML = `<div style="opacity:.75;">Type a genus to search.</div>`;
+    let t;
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => searchGenus(input.value), 200);
+    });
+  }
 })();
 </script>
-
+   
 </body>
 </html>
+
 
 
 
