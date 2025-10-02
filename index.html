@@ -59,6 +59,8 @@
 </head>
 <body>
   <header>
+    <nav id="tabbar"></nav>
+<div id="config-status" style="color:#9fb0c3;font-size:12px;margin:6px 0;"></div>
     <div class="wrap">
       <h1>🦕 Dino Database</h1>
       <div class="sub">Browse by <strong>Family</strong>, </strong>Subfamily</strong>, </strong>Genus,</strong>or </strong>search <strong>all <strong>species</div>
@@ -343,8 +345,46 @@ render();
   for(const f of candidates){ await loadFile(f); }
 })();
 </script>
+<script>
+(async function(){
+  const statusEl = document.getElementById('config-status');
+
+  function setStatus(msg){ 
+    if(statusEl) statusEl.textContent = msg; 
+    console.log(msg); 
+  }
+
+  let tabbar = document.getElementById('tabbar');
+
+  try {
+    const res = await fetch('app.config.json?v=' + Date.now());
+    if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+    const cfg = await res.json();
+    setStatus('✅ app.config.json loaded');
+
+    if (cfg.ui && Array.isArray(cfg.ui.tabs)) {
+      tabbar.innerHTML = '';
+      cfg.ui.tabs.forEach(t => {
+        const btn = document.createElement('button');
+        btn.textContent = t.label || t.id;
+        btn.dataset.tab = t.id;
+        btn.style.cssText = 'padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer;margin-right:6px;';
+        tabbar.appendChild(btn);
+      });
+      setStatus('✅ Tabs rendered from config (' + cfg.ui.tabs.length + ')');
+    } else {
+      setStatus('⚠️ Config loaded but no ui.tabs found');
+    }
+  } catch (e) {
+    setStatus('❌ Could not load app.config.json — ' + e.message);
+    console.error(e);
+  }
+})();
+</script>
+
 </body>
 </html>
+
 
 
 
