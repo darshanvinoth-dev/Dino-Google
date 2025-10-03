@@ -346,146 +346,397 @@ render();
 })();
 </script>
 <script>
-/* Tabs bootstrap v2 — adds Home, keeps grid on Home, Deep Dive is search-only */
+/* Tabs powered by app.config.json  — Home + Deep Dive (Wikipedia) + Games */
 (function () {
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  const header = $('header');
-  if (!header) { console.warn('No <header> found'); return; }
+  // ---------- small CSS (injected)
+  const style = document.createElement('style');
+  style.textContent = `
+    #tabbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 20px}
+    #tabbar button{padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer}
+    #tabbar button.active{background:#0f1520;border-color:#3a4d66}
+    section[data-tab]{max-width:1200px;margin:10px auto;padding:0 20px}
+    .card{background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px}
 
-  /* 1) Ensure a tabbar exists (after header) */
-  let tabbar = $('#tabbar');
-  if (!tabbar) {
-    tabbar = document.createElement('nav');
-    tabbar.id = 'tabbar';
-    tabbar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:10px 20px;';
-    header.insertAdjacentElement('afterend', tabbar);
-  }
+    /* Deep Dive */
+    .dd-wrap{min-height:55vh;display:flex;align-items:center;justify-content:center}
+    .dd-col{width:100%;max-width:900px}
+    .dd-search{width:100%;padding:16px 18px;border-radius:12px;border:1px solid #263244;background:#0f1520;color:#e7eef7;font-size:18px}
+    .dd-help{opacity:.8;margin:.6rem 0 1.2rem}
+    .dd-result h3{margin:.5rem 0 .25rem}
+    .dd-meta{opacity:.85;margin-bottom:.5rem}
+    .dd-img{width:100%;max-width:520px;border-radius:12px}
+    .dd-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(160px,1fr));gap:10px;margin-top:10px}
+    .dd-grid img{width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid #263244}
+    .dd-credit{opacity:.7;margin-top:.75rem;font-size:12px}
 
-  /* 2) Rebuild buttons: Home, Deep Dive, Today’s Dino, Games */
-  tabbar.innerHTML = '';
-  const makeBtn = (id, label) => {
-    const b = document.createElement('button');
-    b.dataset.tab = id;
-    b.textContent = label;
-    b.style.cssText =
-      'padding:8px 12px;border:1px solid #263244;border-radius:999px;background:#1b2430;color:#e7eef7;cursor:pointer';
-    tabbar.appendChild(b);
-    return b;
-  };
-  makeBtn('home', 'Home');
-  makeBtn('deep-dive', 'Deep Dive');
-  makeBtn('todays-dino', "Today’s Dino");
-  makeBtn('games', 'Games');
+    /* Games hub */
+    .nf-wrap{display:grid;gap:14px}
+    .nf-row{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .nf-card{grid-column:span 12;background:#0f1520;border:1px solid #263244;border-radius:16px;padding:14px}
+    .nf-card h3{margin:0 0 8px}
+    .nf-card p{opacity:.85;margin:4px 0 10px}
+    .nf-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .nf-btn{padding:10px 12px;border-radius:10px;border:1px solid #263244;background:#121821;color:#e7eef7;cursor:pointer}
+    .nf-badge{padding:3px 8px;border-radius:999px;background:#7ad1ff;color:#0b1724;font-weight:700;font-size:12px}
+    .nf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (min-width: 720px){ .nf-card--half{grid-column:span 6} }
+    input.clean { width:100%;padding:12px;border-radius:10px;border:1px solid #263244;background:#0b1320;color:#e7eef7 }
+    .grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .mm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .mm-card{height:100px;background:#0b1320;border:1px solid #2a3a52;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700}
+    .mm-card.matched{background:#143b2d;border-color:#1f7055}
+    .mm-card.open{background:#1a2233}
+  `;
+  document.head.appendChild(style);
 
-  /* 3) Ensure panels exist (immediately under tabbar) */
-  function ensurePanel(id, html) {
-    let p = document.getElementById('panel-' + id);
-    if (!p) {
+  // ---------- find header
+  const globalHeader = document.querySelector('header');
+  if (!globalHeader) { console.warn('No <header> in page'); return; }
+
+  // ---------- helpers
+  function ensurePanel(afterEl, id, html=''){
+    let p = document.getElementById('panel-'+id);
+    if(!p){
       p = document.createElement('section');
-      p.id = 'panel-' + id;
+      p.id = 'panel-'+id;
       p.setAttribute('data-tab', id);
       p.hidden = true;
-      p.innerHTML = html || '';
-      tabbar.insertAdjacentElement('afterend', p);
+      p.innerHTML = html;
+      afterEl.insertAdjacentElement('afterend', p);
     }
     return p;
   }
+  const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+  const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 
-  // HOME → will contain your existing <main class="wrap">…grid…</main>
-  const home = ensurePanel('home', '');
-
-  // DEEP DIVE → search-only UI (results list; no big grid)
-  const deep = ensurePanel(
-    'deep-dive',
-    `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
-       <h3 style="margin:.25rem 0 .5rem;">Deep Dive — Search by Genus</h3>
-       <input id="dd-search" type="search" placeholder="Type a genus (e.g., Tyrannosaurus)…"
-              style="width:100%;max-width:520px;padding:10px;border-radius:10px;border:1px solid #263244;background:#0f1520;color:#e7eef7;">
-       <div id="dd-results" style="margin-top:12px;"></div>
-     </article>`
-  );
-
-  // TODAY’S DINO
-  const today = ensurePanel(
-    'todays-dino',
-    `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
-       <h3 style="margin:.25rem 0 .5rem;">Today’s Dino</h3>
-       <div id="today-content" style="opacity:.85">Coming soon…</div>
-     </article>`
-  );
-
-  // GAMES
-  const games = ensurePanel(
-    'games',
-    `<article class="card" style="background:#121821;border:1px solid #1d2634;border-radius:14px;padding:12px;">
-       <h3 style="margin:.25rem 0 .5rem;">Games</h3>
-       <div id="games-mount" style="opacity:.85">Coming soon…</div>
-     </article>`
-  );
-
-  /* 4) Move your existing main/grid into the HOME panel (so only Home shows dinosaurs) */
-  const mainWrap = document.querySelector('main.wrap');
-  if (mainWrap && !home.contains(mainWrap)) home.appendChild(mainWrap);
-
-  /* 5) Small active style */
-  const css = document.createElement('style');
-  css.textContent = `#tabbar .active{background:#0f1520!important;border-color:#3a4d66!important}`;
-  document.head.appendChild(css);
-
-  /* 6) Show/hide logic */
-  function showTab(tabId){
-    [['home', home], ['deep-dive', deep], ['todays-dino', today], ['games', games]].forEach(([id, el])=>{
-      el.hidden = (id !== tabId);
-    });
-    $$('#tabbar button').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
-    localStorage.setItem('dd_last_tab', tabId);
-  }
-
-  // wire buttons
-  $$('#tabbar button').forEach(btn=>{
-    btn.addEventListener('click', () => showTab(btn.dataset.tab));
-  });
-
-  /* 7) Initial tab: Home */
-  const initial = localStorage.getItem('dd_last_tab') || 'home';
-  showTab(initial);
-
-  /* 8) Deep Dive — simple search by genus (lightweight) */
-  const input = $('#dd-search');
-  const results = $('#dd-results');
-  function renderResults(items){
-    if (!items.length){
-      results.innerHTML = `<div style="opacity:.75;">No matches.</div>`;
-      return;
+  // ---------- BUILD from config (with fallback)
+  async function loadConfig(){
+    try{
+      const res = await fetch('app.config.json?v=' + Date.now());
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return await res.json();
+    }catch(e){
+      console.warn('Config missing or invalid. Using defaults.', e);
+      return {
+        ui:{ tabs:[
+          {id:'home',label:'Home'},
+          {id:'deep-dive',label:'Deep Dive'},
+          {id:'todays-dino',label:'Today\'s Dino'},
+          {id:'games',label:'Games'}
+        ]},
+        routing:{ default_route:'#/home' }
+      };
     }
-    results.innerHTML = items.slice(0,50).map(d => {
-      const where = [d.timeRange||d.time||'', d.formation||'', d.locality||'']
-        .filter(Boolean).join(' — ');
-      return `<div style="padding:8px 10px;border:1px solid #263244;border-radius:10px;margin:6px 0;background:#0f1520;">
-                <div style="font-weight:700;">${d.name}</div>
-                <div style="opacity:.85;font-size:13px;">Genus: <b>${d.genus||'—'}</b> • Family: <b>${d.family||'—'}</b></div>
-                <div style="opacity:.8;font-size:12px;margin-top:4px;">${where}</div>
-              </div>`;
-    }).join('');
   }
-  function searchGenus(q){
-    const DB = (window.DB && Array.isArray(window.DB)) ? window.DB : [];
-    const term = String(q||'').trim().toLowerCase();
-    if (!term){ results.innerHTML = `<div style="opacity:.75;">Type a genus to search.</div>`; return; }
-    const out = DB.filter(d => (d.genus||'').toLowerCase().includes(term));
-    renderResults(out);
+
+  function safeDB(){
+    if (Array.isArray(window.DB) && window.DB.length) return window.DB;
+    return [
+      {name:'Tyrannosaurus rex', genus:'Tyrannosaurus', family:'Tyrannosauridae', diet:'Carnivore'},
+      {name:'Velociraptor mongoliensis', genus:'Velociraptor', family:'Dromaeosauridae', diet:'Carnivore'},
+      {name:'Spinosaurus aegyptiacus', genus:'Spinosaurus', family:'Spinosauridae', diet:'Carnivore'},
+      {name:'Triceratops horridus', genus:'Triceratops', family:'Ceratopsidae', diet:'Herbivore'},
+      {name:'Stegosaurus stenops', genus:'Stegosaurus', family:'Stegosauridae', diet:'Herbivore'},
+      {name:'Ankylosaurus magniventris', genus:'Ankylosaurus', family:'Ankylosauridae', diet:'Herbivore'},
+      {name:'Parasaurolophus walkeri', genus:'Parasaurolophus', family:'Hadrosauridae', diet:'Herbivore'},
+      {name:'Diplodocus carnegii', genus:'Diplodocus', family:'Diplodocidae', diet:'Herbivore'},
+      {name:'Allosaurus fragilis', genus:'Allosaurus', family:'Allosauridae', diet:'Carnivore'},
+      {name:'Giganotosaurus carolinii', genus:'Giganotosaurus', family:'Carcharodontosauridae', diet:'Carnivore'}
+    ];
   }
-  if (input){
-    results.innerHTML = `<div style="opacity:.75;">Type a genus to search.</div>`;
-    let t;
-    input.addEventListener('input', () => {
-      clearTimeout(t);
-      t = setTimeout(() => searchGenus(input.value), 200);
+
+  function makeTabbar(){
+    let bar = document.getElementById('tabbar');
+    if(!bar){
+      bar = document.createElement('nav');
+      bar.id = 'tabbar';
+      globalHeader.insertAdjacentElement('afterend', bar);
+    }
+    bar.innerHTML = '';
+    return bar;
+  }
+
+  // ---------- Deep Dive (Wikipedia)
+  async function wikiSummary(title){
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+      {headers:{'Accept':'application/json'}});
+    if(!r.ok) throw new Error('summary '+r.status);
+    return r.json();
+  }
+  async function wikiMedia(title){
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(title)}`,
+      {headers:{'Accept':'application/json'}});
+    if(!r.ok) return null; return r.json();
+  }
+  const cap = w => !w ? '' : w[0].toUpperCase()+w.slice(1).toLowerCase();
+
+  function renderDeepDive(container, data, media){
+    const title = data.title||'', desc = data.description||'', extract = data.extract||'';
+    const img = (data.originalimage?.source) || (data.thumbnail?.source) || '';
+    let gallery = '';
+    if (media?.items?.length){
+      const pics = media.items
+        .filter(x=>x.type==='image'&&x.srcset?.length)
+        .slice(0,8).map(x=>x.srcset.at(-1).src);
+      if (pics.length){
+        gallery = `<div class="dd-grid">`+pics.map(src=>`<img src="${src}" alt="" loading="lazy">`).join('')+`</div>`;
+      }
+    }
+    const credit = data.content_urls?.desktop?.page
+      ? `<div class="dd-credit">Source: <a href="${data.content_urls.desktop.page}" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)</div>` : '';
+    container.innerHTML = `
+      <div class="dd-result card">
+        <h3>${title}</h3>
+        <div class="dd-meta">${desc}</div>
+        ${img?`<img class="dd-img" src="${img}" alt="${title}" loading="lazy">`:''}
+        <p style="margin-top:.75rem;">${extract}</p>
+        ${gallery}
+        ${credit}
+      </div>`;
+  }
+
+  // ---------- Games (hub)
+  function initGamesOnce(panel){
+    if (panel.__ready) return;
+    panel.__ready = true;
+
+    const DB = safeDB();
+    const HERB = ['Triceratops','Stegosaurus','Ankylosaurus','Edmontosaurus','Parasaurolophus','Corythosaurus','Diplodocus','Brachiosaurus','Giraffatitan','Iguanodon'];
+    const CARN = ['Tyrannosaurus','Velociraptor','Allosaurus','Giganotosaurus','Spinosaurus','Baryonyx','Carnotaurus','Carcharodontosaurus','Suchomimus','Deinonychus'];
+
+    const html = `
+      <div class="nf-wrap">
+        <div class="nf-row">
+          <div class="nf-card nf-card--half">
+            <h3>Dino Quiz <span class="nf-badge">MCQ</span></h3>
+            <p>Test your knowledge with quick multiple-choice questions.</p>
+            <div class="nf-actions"><button class="nf-btn" id="btn-quiz">Play</button></div>
+            <div id="quiz-mount" style="margin-top:10px;"></div>
+          </div>
+          <div class="nf-card nf-card--half">
+            <h3>Guess the Dino <span class="nf-badge">Clues</span></h3>
+            <p>We’ll give you hints. Can you type the correct dinosaur?</p>
+            <div class="nf-actions"><button class="nf-btn" id="btn-guess">Play</button></div>
+            <div id="guess-mount" style="margin-top:10px;"></div>
+          </div>
+        </div>
+        <div class="nf-row">
+          <div class="nf-card nf-card--half">
+            <h3>Memory Match <span class="nf-badge">Pairs</span></h3>
+            <p>Flip two cards to find matching dinosaur pairs.</p>
+            <div class="nf-actions"><button class="nf-btn" id="btn-memory">Play</button></div>
+            <div id="memory-mount" style="margin-top:10px;"></div>
+          </div>
+          <div class="nf-card nf-card--half">
+            <h3>Hybrid Engine <span class="nf-badge">Mash-Up</span></h3>
+            <p>Combine a herbivore and a carnivore to make a wild hybrid.</p>
+            <div class="nf-actions"><button class="nf-btn" id="btn-hybrid">Open</button></div>
+            <div id="hybrid-mount" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>`;
+    panel.innerHTML = html;
+
+    // quiz
+    const quizMount = panel.querySelector('#quiz-mount');
+    panel.querySelector('#btn-quiz').addEventListener('click', ()=>{
+      const q = pick(DB);
+      const correct = q.genus;
+      const options = shuffle([correct, ...shuffle(DB.filter(d=>d.genus!==correct)).slice(0,3).map(d=>d.genus)]);
+      quizMount.innerHTML = `
+        <div class="card">
+          <div style="margin-bottom:6px;">Which genus belongs to the species <b>${q.name}</b>?</div>
+          <div class="grid-cards">
+            ${options.map(opt => `<button class="nf-btn opt" data-v="${opt}">${opt}</button>`).join('')}
+          </div>
+          <div id="quiz-msg" style="margin-top:8px;opacity:.9"></div>
+        </div>`;
+      panel.querySelectorAll('#quiz-mount .opt').forEach(b=>{
+        b.addEventListener('click', ()=>{
+          const msg = panel.querySelector('#quiz-msg');
+          if (b.dataset.v === correct){ msg.textContent='✅ Correct!'; setTimeout(()=>b.closest('.card').remove(), 900); }
+          else msg.textContent='❌ Nope — try again.';
+        });
+      });
+    });
+
+    // guess
+    const guessMount = panel.querySelector('#guess-mount');
+    panel.querySelector('#btn-guess').addEventListener('click', ()=>{
+      const d = pick(DB);
+      const clues = shuffle([
+        `Family: ${d.family||'—'}`,
+        `Diet: ${d.diet||'—'}`,
+        d.name.includes(' ') ? `Species epithet: ${d.name.split(' ')[1]}` : `Era hint: Mesozoic`,
+        `Genus starts with: ${d.genus[0]}`
+      ]);
+      guessMount.innerHTML = `
+        <div class="card">
+          <div>Guess the <b>genus</b>:</div>
+          <ul style="margin:.5rem 0 .6rem 1.2rem;">${clues.slice(0,3).map(c=>`<li>${c}</li>`).join('')}</ul>
+          <input id="guess-in" class="clean" type="text" placeholder="Type genus…" />
+          <div id="guess-msg" style="margin-top:8px;opacity:.9"></div>
+        </div>`;
+      const input = panel.querySelector('#guess-in'), msg = panel.querySelector('#guess-msg');
+      input.addEventListener('keydown', e=>{
+        if (e.key==='Enter'){
+          const v = (input.value||'').trim().toLowerCase();
+          if (v === (d.genus||'').toLowerCase()){ msg.textContent='✅ Correct!'; setTimeout(()=>guessMount.innerHTML='', 900); }
+          else msg.textContent='❌ Keep trying!';
+        }
+      });
+    });
+
+    // memory
+    const memMount = panel.querySelector('#memory-mount');
+    panel.querySelector('#btn-memory').addEventListener('click', ()=>{
+      const names = shuffle(DB.map(d=>d.genus)).slice(0,6);
+      const tiles = shuffle([...names, ...names]).map((name, i)=>({id:i, name, open:false, matched:false}));
+      let openIds = [];
+      function render(){
+        memMount.innerHTML = `
+          <div class="mm-grid">
+            ${tiles.map(t => `<div class="mm-card ${t.matched?'matched':(t.open?'open':'')}" data-id="${t.id}">${t.open||t.matched?t.name:'❓'}</div>`).join('')}
+          </div>`;
+        memMount.querySelectorAll('.mm-card').forEach(card=>{
+          card.addEventListener('click', ()=>{
+            const id = +card.dataset.id; const tile = tiles.find(x=>x.id===id);
+            if (tile.matched || tile.open) return;
+            tile.open = true; openIds.push(id);
+            if (openIds.length===2){
+              const [a,b] = openIds.map(i=>tiles.find(t=>t.id===i));
+              if (a.name===b.name){ a.matched=b.matched=true; }
+              setTimeout(()=>{ tiles.forEach(t=>{ if(!t.matched) t.open=false; }); openIds=[]; render(); }, 500);
+            }
+            render();
+          });
+        });
+      }
+      render();
+    });
+
+    // hybrid
+    const hybMount = panel.querySelector('#hybrid-mount');
+    panel.querySelector('#btn-hybrid').addEventListener('click', ()=>{
+      const HERB = ['Triceratops','Stegosaurus','Ankylosaurus','Edmontosaurus','Parasaurolophus','Corythosaurus','Diplodocus','Brachiosaurus','Giraffatitan','Iguanodon'];
+      const CARN = ['Tyrannosaurus','Velociraptor','Allosaurus','Giganotosaurus','Spinosaurus','Baryonyx','Carnotaurus','Carcharodontosaurus','Suchomimus','Deinonychus'];
+      const mash = (a,b)=> a.slice(0, Math.max(3, Math.floor(a.length/2))) + b.slice(Math.max(0, b.length-Math.max(3, Math.floor(b.length/2))));
+      hybMount.innerHTML = `
+        <div class="card">
+          <div class="nf-grid2">
+            <div><label>Herbivore</label><select id="hyb-herb" class="clean">${HERB.map(n=>`<option>${n}</option>`).join('')}</select></div>
+            <div><label>Carnivore</label><select id="hyb-carn" class="clean">${CARN.map(n=>`<option>${n}</option>`).join('')}</select></div>
+          </div>
+          <div class="nf-actions" style="margin-top:10px;"><button class="nf-btn" id="hyb-go">Combine</button></div>
+          <div id="hyb-out" style="margin-top:10px;"></div>
+        </div>`;
+      panel.querySelector('#hyb-go').addEventListener('click', ()=>{
+        const a = panel.querySelector('#hyb-herb').value, b = panel.querySelector('#hyb-carn').value;
+        const name = mash(a,b);
+        const size = pick(['small','medium','large','giant']);
+        const temper = pick(['docile','skittish','territorial','aggressive']);
+        const trait = pick(['powerful beak','armored hide','crest display','semi-aquatic hunter','massive tail club','fast sprinter','pack tactics','long neck browsing']);
+        panel.querySelector('#hyb-out').innerHTML = `<div class="card"><div style="font-size:22px"><b>${name}</b> — a ${size}, ${temper} hybrid</div><p>Parents: <b>${a}</b> × <b>${b}</b></p><p>Signature trait: ${trait}.</p></div>`;
+      });
     });
   }
+
+  // ---------- MAIN
+  (async function bootstrap(){
+    const cfg = await loadConfig();
+
+    // build tabbar from config order
+    const tabbar = makeTabbar();
+    const tabs = (cfg.ui && Array.isArray(cfg.ui.tabs) ? cfg.ui.tabs : []).map(t => ({id:String(t.id), label:t.label||t.id}));
+    if (!tabs.length){ tabs.push({id:'home',label:'Home'},{id:'deep-dive',label:'Deep Dive'}); }
+
+    // create buttons
+    tabbar.innerHTML = '';
+    tabs.forEach(t => {
+      const b = document.createElement('button');
+      b.dataset.tab = t.id;
+      b.textContent = t.label;
+      tabbar.appendChild(b);
+    });
+
+    // create panels for known ids
+    const panels = new Map();
+    const afterEl = tabbar;
+
+    // HOME: clone header + move main.wrap
+    const home = ensurePanel(afterEl,'home','');
+    if (!home.querySelector('header')) {
+      const clone = globalHeader.cloneNode(true);
+      home.prepend(clone);
+      globalHeader.style.display = 'none'; // hide global header on non-home tabs
+    }
+    const mainWrap = document.querySelector('main.wrap');
+    if (mainWrap && !home.contains(mainWrap)) home.appendChild(mainWrap);
+    panels.set('home', home);
+
+    // DEEP DIVE
+    const deep = ensurePanel(afterEl,'deep-dive', `
+      <div class="dd-wrap">
+        <div class="dd-col">
+          <input id="dd-search" class="dd-search" type="search" placeholder="Search a genus (e.g., Tyrannosaurus)…" />
+          <div class="dd-help">Press Enter to fetch a summary, image and gallery from Wikipedia.</div>
+          <div id="dd-results"></div>
+        </div>
+      </div>`);
+    panels.set('deep-dive', deep);
+
+    // TODAY
+    const today = ensurePanel(afterEl,'todays-dino',
+      `<article class="card"><h3>Today’s Dino</h3><div id="today-content">Coming soon…</div></article>`);
+    panels.set('todays-dino', today);
+
+    // GAMES
+    const games = ensurePanel(afterEl,'games', `<div class="card">Loading games…</div>`);
+    panels.set('games', games);
+
+    // Any EXTRA tabs in config -> simple placeholder
+    tabs.forEach(t => {
+      if (!panels.has(t.id)) {
+        panels.set(t.id, ensurePanel(afterEl, t.id, `<article class="card"><h3>${t.label}</h3><p>Coming soon…</p></article>`));
+      }
+    });
+
+    // click handlers + show/hide
+    function showTab(id){
+      panels.forEach((el, key) => el.hidden = (key !== id));
+      tabbar.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.tab===id));
+      localStorage.setItem('dd_last_tab', id);
+      if (id==='games') initGamesOnce(games);
+    }
+    tabbar.querySelectorAll('button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+
+    const initial =
+      (localStorage.getItem('dd_last_tab')) ||
+      (cfg.routing && cfg.routing.default_route ? cfg.routing.default_route.replace(/^#\//,'') : 'home');
+    showTab(initial);
+
+    // Deep Dive search wiring
+    const qInput = deep.querySelector('#dd-search');
+    const results = deep.querySelector('#dd-results');
+    async function doSearch(){
+      const q = (qInput.value||'').trim(); if(!q){ results.innerHTML=''; return; }
+      const genus = cap(q);
+      results.innerHTML = `<div class="card">Searching <b>${genus}</b>…</div>`;
+      try{
+        const [sum, med] = await Promise.all([ wikiSummary(genus), wikiMedia(genus) ]);
+        renderDeepDive(results, sum, med);
+      }catch(e){
+        console.error(e);
+        results.innerHTML = `<div class="card">No Wikipedia article found for <b>${genus}</b>.</div>`;
+      }
+    }
+    if (qInput) qInput.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+  })();
 })();
-</script> 
+</script>
 </body>
 </html>
+
